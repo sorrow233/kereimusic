@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>时间轴模块</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .timeline-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            position: relative;
+        }
+
+        .music-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+            cursor: pointer;
+        }
+
+        .music-icon:hover {
+            opacity: 1;
+        }
+
+        .song-timeline {
+            flex: 1;
+            position: relative;
+        }
+
+        .timeline-segments {
+            display: flex;
+            width: 100%;
+            height: 4px;
+            background: rgba(240, 240, 240, 0.6);
+            border-radius: 2px;
+            transition: opacity 0.3s ease;
+        }
+
+        .segment {
+            flex: 1;
+            height: 100%;
+            position: relative;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+
+        .segment.active {
+            background: #ff4b6b;
+            opacity: 1;
+            animation: fadeEffect 7s ease forwards;
+        }
+
+        @keyframes fadeEffect {
+            0% {
+                background: rgba(255, 75, 107, 1);
+                opacity: 1;
+            }
+            71.4% {
+                background: rgba(255, 75, 107, 1);
+                opacity: 1;
+            }
+            100% {
+                background: rgba(255, 75, 107, 0.6);
+                opacity: 0.6;
+            }
+        }
+
+        .segment:hover,
+        .segment.active:hover {
+            opacity: 1;
+            background: rgba(255, 75, 107, 1);
+            animation: none;
+        }
+
+        .segment:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: -8px;
+            width: 2px;
+            height: 20px;
+            background: rgba(240, 240, 240, 0.6);
+            transition: background-color 0.3s ease;
+        }
+
+        .timeline-segments:hover .segment:not(:last-child)::after {
+            background: rgba(240, 240, 240, 0.8);
+        }
+
+        .timeline-segments.fade {
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="timeline-container">
+        <!-- 音乐图标 -->
+        <svg class="music-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 18V5l12-2v13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="6" cy="18" r="3" stroke="currentColor" stroke-width="2"/>
+            <circle cx="18" cy="16" r="3" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        
+        <!-- 时间轴 -->
+        <div class="song-timeline">
+            <div class="timeline-segments">
+                <div class="segment active" data-song="1"></div>
+                <div class="segment" data-song="2"></div>
+                <div class="segment" data-song="3"></div>
+                <div class="segment" data-song="4"></div>
+                <div class="segment" data-song="5"></div>
+                <div class="segment" data-song="6"></div>
+                <div class="segment" data-song="7"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let fadeTimeout;
+        let isMouseOver = false;
+
+        // 初始化时间轴交互
+        function initializeTimeline() {
+            const segments = document.querySelectorAll('.segment');
+            const musicIcon = document.querySelector('.music-icon');
+            const timeline = document.querySelector('.timeline-segments');
+
+            // 段落点击事件
+            segments.forEach((segment, index) => {
+                segment.addEventListener('click', function() {
+                    const isActive = this.classList.contains('active');
+                    
+                    if (isActive) {
+                        // 如果点击已激活的段落，显示歌曲列表
+                        window.parent.postMessage({
+                            type: 'toggleSongList',
+                            index: index
+                        }, '*');
+                    } else {
+                        // 切换到新歌曲
+                        updateActiveSegment(index);
+                        window.parent.postMessage({
+                            type: 'songChange',
+                            index: index
+                        }, '*');
+                    }
+                });
+            });
+
+            // 音乐图标点击事件
+            musicIcon.addEventListener('click', () => {
+                window.parent.postMessage({
+                    type: 'toggleSongList'
+                }, '*');
+            });
+
+            // 淡出效果控制
+            timeline.addEventListener('mouseover', () => {
+                isMouseOver = true;
+                timeline.classList.remove('fade');
+            });
+
+            timeline.addEventListener('mouseout', () => {
+                isMouseOver = false;
+                startFadeTimer();
+            });
+
+            // 初始启动淡出计时器
+            startFadeTimer();
+        }
+
+        // 更新激活的段落
+        function updateActiveSegment(index) {
+            document.querySelectorAll('.segment').forEach((segment, i) => {
+                if (i === index) {
+                    segment.classList.remove('active');
+                    void segment.offsetWidth; // 触发重排以重启动画
+                    segment.classList.add('active');
+                } else {
+                    segment.classList.remove('active');
+                }
+            });
+        }
+
+        // 淡出计时器
+        function startFadeTimer() {
+            clearTimeout(fadeTimeout);
+            const timeline = document.querySelector('.timeline-segments');
+            timeline.classList.remove('fade');
+            
+            fadeTimeout = setTimeout(() => {
+                if (!isMouseOver) {
+                    timeline.classList.add('fade');
+                }
+            }, 5000);
+        }
+
+        // 监听来自父窗口的消息
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'songChange') {
+                updateActiveSegment(event.data.index);
+            }
+        });
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', initializeTimeline);
+    </script>
+</body>
+</html> 

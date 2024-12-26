@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>播放器模块</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .progress-bar {
+            background: transparent;
+            min-height: 450px;
+            padding: 30px 0;
+            display: flex;
+        }
+
+        .audio-player {
+            width: 6px;
+            background-color: #e9ecef;
+            position: relative;
+            cursor: pointer;
+            border-radius: 3px;
+            margin-right: 30px;
+            z-index: 1;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .audio-player:hover {
+            opacity: 1;
+        }
+
+        .audio-progress {
+            height: 100%;
+            width: 4px;
+            position: relative;
+            border-radius: 2px;
+        }
+
+        .progress-filled {
+            height: 0%;
+            width: 100%;
+            background: linear-gradient(to top, #ff4b6b, #ff8e53);
+            box-shadow: 0 0 10px rgba(255,75,107,0.3);
+            border-radius: 2px;
+            position: absolute;
+            bottom: 0;
+            transition: height 0.1s ease-in-out;
+        }
+
+        .song-info {
+            flex: 1;
+            padding: 20px 0;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .song-info:hover {
+            opacity: 1;
+        }
+
+        .song-info h3 {
+            font-size: 24px;
+            color: #2d3436;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .song-info p {
+            color: #636e72;
+            line-height: 1.8;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar">
+        <div class="audio-player">
+            <div class="audio-progress">
+                <div class="progress-filled"></div>
+            </div>
+        </div>
+        <div class="song-info">
+            <h3>嘘月 - ヨルシカ</h3>
+            <p>
+                雨が降った　花が散った<br>
+                ただ染まった頬を想った<br>
+                僕はずっとバケツ一杯の月光を呑んでる<br>
+                本当なんだ　夜みたいで<br>
+                薄く透明な口触りで<br>
+                そうなんだ、って笑ってもいいけど<br>
+                僕は君を待っている<br>
+                夏��去った街は寂しか<br>
+                僕はやっと部屋に戻って<br>
+                夜になっ
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // 歌曲数据
+        const songs = [
+            {
+                title: "Let's See What The Night Can Do",
+                artist: "Jason Mraz",
+                lyrics: "First song lyrics..."
+            },
+            {
+                title: "Have It All",
+                artist: "Jason Mraz",
+                lyrics: "Second song lyrics..."
+            },
+            {
+                title: "More Than Friends",
+                artist: "Jason Mraz",
+                lyrics: "Third song lyrics..."
+            },
+            {
+                title: "Unlonely",
+                artist: "Jason Mraz",
+                lyrics: "Fourth song lyrics..."
+            },
+            {
+                title: "Better With You",
+                artist: "Jason Mraz",
+                lyrics: "Fifth song lyrics..."
+            },
+            {
+                title: "No Plans",
+                artist: "Jason Mraz",
+                lyrics: "Sixth song lyrics..."
+            },
+            {
+                title: "Love Is Still The Answer",
+                artist: "Jason Mraz",
+                lyrics: "Seventh song lyrics..."
+            }
+        ];
+
+        // 更新歌曲信息
+        function updateSongInfo(index) {
+            const song = songs[index];
+            const songInfo = document.querySelector('.song-info');
+            
+            songInfo.querySelector('h3').textContent = `${song.title} - ${song.artist}`;
+            songInfo.querySelector('p').textContent = song.lyrics;
+            
+            // 重置进度条
+            resetProgress();
+            // 开始模拟进度
+            startProgress();
+        }
+
+        // 重置进度条
+        function resetProgress() {
+            const progressFilled = document.querySelector('.progress-filled');
+            progressFilled.style.height = '0%';
+        }
+
+        // 模拟进度条增长
+        function startProgress() {
+            const progressFilled = document.querySelector('.progress-filled');
+            let progress = 0;
+            
+            // 清除之前的定时器
+            if (window.progressInterval) {
+                clearInterval(window.progressInterval);
+            }
+
+            // 创建新的定时器
+            window.progressInterval = setInterval(() => {
+                progress += 0.1;
+                if (progress <= 100) {
+                    progressFilled.style.height = `${progress}%`;
+                } else {
+                    clearInterval(window.progressInterval);
+                }
+            }, 50); // 每50ms更新一次，总时长约为5秒
+        }
+
+        // 监听来自父窗口的消息
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'songChange') {
+                updateSongInfo(event.data.index);
+            }
+        });
+
+        // 进度条点击事件
+        document.querySelector('.audio-player').addEventListener('click', function(e) {
+            const player = this;
+            const clickPosition = (e.clientY - player.getBoundingClientRect().top) / player.offsetHeight;
+            const progress = (1 - clickPosition) * 100;
+            
+            document.querySelector('.progress-filled').style.height = `${progress}%`;
+        });
+
+        // 初始化第一首歌
+        document.addEventListener('DOMContentLoaded', () => {
+            updateSongInfo(0);
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>歌曲列表模块</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+        }
+
+        .song-list {
+            background: #ffffff;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            min-width: 280px;
+            border-radius: 12px;
+            padding: 8px 0;
+            user-select: none;
+        }
+
+        .song-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .song-list li {
+            padding: 16px 20px;
+            color: #4a4a4a;
+            font-size: 15px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .song-list li:hover {
+            background-color: rgba(0,0,0,0.03);
+            color: #ff4b6b;
+        }
+
+        .song-list li.active {
+            color: #ff4b6b;
+            background-color: rgba(255,75,107,0.05);
+        }
+
+        .song-list li span.number {
+            color: #999;
+            margin-right: 15px;
+            font-size: 14px;
+            min-width: 20px;
+        }
+
+        .song-list li .song-title {
+            flex: 1;
+        }
+
+        .song-list li .song-artist {
+            color: #999;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="song-list">
+        <ul>
+            <li data-index="0">
+                <span class="number">1</span>
+                <span class="song-title">Let's See What The Night Can Do</span>
+                <span class="song-artist">Jason Mraz</span>
+            </li>
+            <li data-index="1">
+                <span class="number">2</span>
+                <span class="song-title">Have It All</span>
+                <span class="song-artist">Jason Mraz</span>
+            </li>
+            <li data-index="2">
+                <span class="number">3</span>
+                <span class="song-title">More Than Friends</span>
+                <span class="song-artist">Jason Mraz</span>
+            </li>
+            <li data-index="3">
+                <span class="number">4</span>
+                <span class="song-title">Unlonely</span>
+                <span class="song-artist">Jason Mraz</span>
+            </li>
+            <li data-index="4">
+                <span class="number">5</span>
+                <span class="song-title">Better With You</span>
+                <span class="song-artist">Jason Mraz</span>
+            </li>
+            <li data-index="5">
+                <span class="number">6</span>
+                <span class="song-title">No Plans</span>
+                <span class="song-artist">Jason Mraz</span>
+            </li>
+            <li data-index="6">
+                <span class="number">7</span>
+                <span class="song-title">Love Is Still The Answer</span>
+                <span class="song-artist">Jason Mraz</span>
+            </li>
+        </ul>
+    </div>
+
+    <script>
+        // 更新活动歌曲状态
+        function updateActiveSong(index) {
+            document.querySelectorAll('.song-list li').forEach((li, i) => {
+                if (i === index) {
+                    li.classList.add('active');
+                } else {
+                    li.classList.remove('active');
+                }
+            });
+        }
+
+        // 为每个列表项添加点击事件
+        document.querySelectorAll('.song-list li').forEach(li => {
+            li.addEventListener('click', function() {
+                const index = parseInt(this.dataset.index);
+                
+                // ��新活动状态
+                updateActiveSong(index);
+                
+                // 通知父窗口切换歌曲
+                window.parent.postMessage({
+                    type: 'songChange',
+                    index: index
+                }, '*');
+            });
+        });
+
+        // 监听来自父窗口的消息
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'songChange') {
+                updateActiveSong(event.data.index);
+            }
+        });
+
+        // 初始化第一首歌为活动状态
+        document.addEventListener('DOMContentLoaded', () => {
+            updateActiveSong(0);
+        });
+    </script>
+</body>
+</html> 

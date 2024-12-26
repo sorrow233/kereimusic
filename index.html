@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>歌曲展示网站</title>
+    <style>
+        .song-container {
+            padding: 30px;
+        }
+        
+        iframe {
+            border: none;
+            width: 100%;
+        }
+        
+        #timeline-frame {
+            height: 100px;
+        }
+        
+        #player-frame {
+            height: 500px;
+        }
+        
+        #songlist-frame {
+            height: 300px;
+            display: none; /* 默认隐藏歌曲列表 */
+        }
+    </style>
+</head>
+<body>
+    <div class="song-container">
+        <iframe src="modules/timeline.html" id="timeline-frame"></iframe>
+        <iframe src="modules/player.html" id="player-frame"></iframe>
+        <iframe src="modules/songlist.html" id="songlist-frame"></iframe>
+    </div>
+
+    <script>
+        // 模块间通信
+        window.addEventListener('message', function(event) {
+            const timelineFrame = document.getElementById('timeline-frame');
+            const playerFrame = document.getElementById('player-frame');
+            const songlistFrame = document.getElementById('songlist-frame');
+
+            switch(event.data.type) {
+                case 'songChange':
+                    // 转发消息给所有模块
+                    timelineFrame.contentWindow.postMessage(event.data, '*');
+                    playerFrame.contentWindow.postMessage(event.data, '*');
+                    songlistFrame.contentWindow.postMessage(event.data, '*');
+                    break;
+                    
+                case 'toggleSongList':
+                    // 切换歌曲列表的显示/隐藏
+                    songlistFrame.style.display = 
+                        songlistFrame.style.display === 'none' ? 'block' : 'none';
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>
